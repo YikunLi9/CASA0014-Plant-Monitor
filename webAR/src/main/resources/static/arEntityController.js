@@ -1,6 +1,6 @@
 AFRAME.registerComponent("mqttdisplay", {
     init: function () {
-        client = mqtt.connect("wss://mqtt.cetools.org:8081", username="student",password="ce2021-mqtt-forget-whale" );
+        client = mqtt.connect("wss://mqtt.cetools.org:8081", username="student",password="" );
         client.on("connect", () => {
             console.log("Connected");
             this.startMqtt(client); //if connected, subscribe to the topics
