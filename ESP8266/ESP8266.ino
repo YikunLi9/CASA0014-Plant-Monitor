@@ -1,5 +1,4 @@
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
 #include <ezTime.h>
 #include <PubSubClient.h>
 #include <DHT.h>
@@ -24,8 +23,6 @@ const char* ssid     = SECRET_SSID;
 const char* password = SECRET_PASS;
 const char* mqttuser = SECRET_MQTTUSER;
 const char* mqttpass = SECRET_MQTTPASS;
-
-ESP8266WebServer server(80);
 const char* mqtt_server = "mqtt.cetools.org";
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -60,7 +57,6 @@ void setup() {
 
   // run initialisation functions
   startWifi();
-  startWebserver();
   syncDate();
 
   // start MQTT server
@@ -70,9 +66,6 @@ void setup() {
 }
 
 void loop() {
-  // handler for receiving requests to webserver
-  server.handleClient();
-
   readMoisture();
   sendMQTT();
   Serial.println(GB.dateTime("H:i:s")); // UTC.dateTime("l, d-M-y H:i:s.v T")
@@ -122,14 +115,6 @@ void syncDate() {
   Serial.println("UTC: " + UTC.dateTime());
   GB.setLocation("Europe/London");
   Serial.println("London time: " + GB.dateTime());
-}
-
-void startWebserver() {
-  // when connected and IP address obtained start HTTP server
-  server.on("/", handle_OnConnect);
-  server.onNotFound(handle_NotFound);
-  server.begin();
-  Serial.println("HTTP server started");
 }
 
 void sendMQTT() {
@@ -191,54 +176,10 @@ void reconnect() {
       client.subscribe("student/CASA0014/plant/zczqy83/inTopic");
     } else {
       Serial.print("failed, rc=");
-      Serial.print(client.state());
+      Serial.print(client.state());s
       Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
   }
-}
-
-void handle_OnConnect() {
-  Temperature = dht.readTemperature(); // Gets the values of the temperature
-  Humidity = dht.readHumidity(); // Gets the values of the humidity
-  server.send(200, "text/html", SendHTML(Temperature, Humidity, Moisture));
-}
-
-void handle_NotFound() {
-  server.send(404, "text/plain", "Not found");
-}
-
-String SendHTML(float Temperaturestat, float Humiditystat, int Moisturestat) {
-  String ptr = "<!DOCTYPE html> <html>\n";
-  ptr += "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
-  ptr += "<title>ESP8266 DHT22 Report</title>\n";
-  ptr += "<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}\n";
-  ptr += "body{margin-top: 50px;} h1 {color: #444444;margin: 50px auto 30px;}\n";
-  ptr += "p {font-size: 24px;color: #444444;margin-bottom: 10px;}\n";
-  ptr += "</style>\n";
-  ptr += "</head>\n";
-  ptr += "<body>\n";
-  ptr += "<div id=\"webpage\">\n";
-  ptr += "<h1>ESP8266 Huzzah DHT22 Report</h1>\n";
-
-  ptr += "<p>Temperature: ";
-  ptr += (int)Temperaturestat;
-  ptr += " C</p>";
-  ptr += "<p>Humidity: ";
-  ptr += (int)Humiditystat;
-  ptr += "%</p>";
-  ptr += "<p>Moisture: ";
-  ptr += Moisturestat;
-  ptr += "</p>";
-  ptr += "<p>Sampled on: ";
-  ptr += GB.dateTime("l,");
-  ptr += "<br>";
-  ptr += GB.dateTime("d-M-y H:i:s T");
-  ptr += "</p>";
-
-  ptr += "</div>\n";
-  ptr += "</body>\n";
-  ptr += "</html>\n";
-  return ptr;
 }
