@@ -7,27 +7,27 @@
 #define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 
 // Sensors - DHT22 and Nails
-uint8_t DHTPin = 12;        // on Pin 2 of the Huzzah
-uint8_t soilPin = 0;      // ADC or A0 pin on Huzzah
+uint8_t DHTPin = 12;        // bind 2-digital pin to DHT22
+uint8_t soilPin = 0;      // bind 0-analog pin to soil moisture sensor
 float Temperature;
 float Humidity;
-int Moisture = 1; // initial value just in case web page is loaded before readMoisture called
+int Moisture = 1; // initial value just in case web page is loaded before readMoisture called (abate)
 int sensorVCC = 13;
 int blueLED = 2;
 DHT dht(DHTPin, DHTTYPE);   // Initialize DHT sensor.
 
 // Wifi and MQTT
 #include "arduino_secrets.h" 
-
+// read arduino_sectets.h to get these sensitive information
 const char* ssid     = SECRET_SSID;
 const char* password = SECRET_PASS;
 const char* mqttuser = SECRET_MQTTUSER;
 const char* mqttpass = SECRET_MQTTPASS;
-const char* mqtt_server = "mqtt.cetools.org";
-WiFiClient espClient;
-PubSubClient client(espClient);
+const char* mqtt_server = "mqtt.cetools.org"; // set mqtt server address
+WiFiClient espClient; // initialize Wifi client
+PubSubClient client(espClient); //initialize mqtt client
 long lastMsg = 0;
-char msg[50];
+char msg[50]; //initilize message char array
 int value = 0;
 
 // Date and time
@@ -35,7 +35,7 @@ Timezone GB;
 
 void setup() {
   // Set up LED to be controllable via broker
-  // Initialize the BUILTIN_LED pin as an output
+  // Initialize the BUILTIN_LED digital pin as an output
   // Turn the LED off by making the voltage HIGH
   pinMode(BUILTIN_LED, OUTPUT);     
   digitalWrite(BUILTIN_LED, HIGH);  
@@ -66,10 +66,11 @@ void setup() {
 }
 
 void loop() {
+  // when device running, start to get data from sensors
   readMoisture();
   sendMQTT();
   Serial.println(GB.dateTime("H:i:s")); // UTC.dateTime("l, d-M-y H:i:s.v T")
-  delay(15000);
+  delay(15000); //get data every 15 seconds
 
   client.loop();
 }
@@ -81,8 +82,7 @@ void readMoisture(){
   digitalWrite(blueLED, LOW);
   delay(100);
   // read the value from the sensor:
-  Moisture = analogRead(soilPin);         
-  //Moisture = map(analogRead(soilPin), 0,320, 0, 100);    // note: if mapping work out max value by dipping in water     
+  Moisture = analogRead(soilPin);           
   //stop power
   digitalWrite(sensorVCC, LOW);  
   digitalWrite(blueLED, HIGH);
@@ -92,13 +92,13 @@ void readMoisture(){
 }
 
 void startWifi() {
-  // We start by connecting to a WiFi network
+  // connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
 
-  // check to see if connected and wait until you are
+  // check to see if connected and wait until connected
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -125,24 +125,25 @@ void sendMQTT() {
   client.loop();
 
   Temperature = dht.readTemperature(); // Gets the values of the temperature
-  snprintf (msg, 50, "%.1f", Temperature);
+  snprintf (msg, 50, "%.1f", Temperature); // store the message till a 50 in the .1f format
   Serial.print("Publish message for t: ");
   Serial.println(msg);
   client.publish("student/CASA0014/plant/zczqy83/temperature", msg);
 
   Humidity = dht.readHumidity(); // Gets the values of the humidity
-  snprintf (msg, 50, "%.0f", Humidity);
+  snprintf (msg, 50, "%.0f", Humidity); // store the message till a 50 in the .0f format
   Serial.print("Publish message for h: ");
   Serial.println(msg);
   client.publish("student/CASA0014/plant/zczqy83/humidity", msg);
 
   //Moisture = analogRead(soilPin);   // moisture read by readMoisture function
-  snprintf (msg, 50, "%.0i", Moisture);
+  snprintf (msg, 50, "%.0i", Moisture); // store the message till a 50 in the .0i format
   Serial.print("Publish message for m: ");
   Serial.println(msg);
   client.publish("student/CASA0014/plant/zczqy83/moisture", msg);
 }
 
+// call when get callback
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
@@ -152,6 +153,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println();
 
+  // Control the LED by the content of callback
   // Switch on the LED if an 1 was received as first character
   if ((char)payload[0] == '1') {
     digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
@@ -161,6 +163,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
+// call when disconnected from mqtt server
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
