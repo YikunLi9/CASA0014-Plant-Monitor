@@ -6,7 +6,7 @@ Plant Monitor is an intelligent system designed to monitor plant environments, p
 
 
 
-<img src="D:\UCL\CASA0014\captured.PNG" alt="rendering" style="zoom:50%;" />
+<img src="diagrams/captured.PNG" alt="rendering" style="zoom:50%;" />
 
 
 
@@ -23,7 +23,7 @@ Plant Monitor is an intelligent system designed to monitor plant environments, p
 
 <div style="display: flex; align-items: center">
     <div class="column" style="float:left;width:25%">
-		<img src="D:\UCL\CASA0014\diagram.PNG" alt="diagram" />
+		<img src="diagrams/diagram.PNG" alt="diagram" />
     </div>
     <div class="column" style="float:right; width:75%">
         1. ESP8266 Sensors:
