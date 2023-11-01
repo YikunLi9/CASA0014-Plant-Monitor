@@ -6,7 +6,7 @@ Plant Monitor is an intelligent system designed to monitor plant environments, p
 
 
 
-<img src="diagrams/captured.PNG" alt="rendering" style="zoom:50%;" />
+<img src="diagrams/captured.PNG" alt="rendering" style="zoom:25%;" />
 
 
 
